@@ -10,12 +10,17 @@ right = 33
 
 start = 24
 
-sizeX = 7
-sizeY = 7
+sizeX = 30
+sizeY = 15
+
+NUMPIXELS = 2*(sizeX*sizeY)
+order = 'gbr'
+
+strip = Adafruit_DotStar(NUMPIXELS, 2000000, order=order)
 
 # -- CONSTANTS
 #set the fps, which determines the speed of the snake
-SPEED = 8
+SPEED = 10
 #screen size, used for pygame input events and to display instructions 
 SCREEN_WIDTH = 600
 SCREEN_HEIGHT = 450
@@ -30,6 +35,27 @@ PURPLE = (255,    0, 255)
 CYAN =   (     0, 255, 255)
 COLOURS = (GREEN, RED, BLUE, YELLOW, PURPLE, CYAN)
 
+pixelGrid = [[0 for x in range(sizeX+1)] for y in range(sizeY+1)]
+
+keyVal = 840
+for j in range(sizeY):
+
+    for i in range(sizeX):
+	if(j % 2 == 0):
+        	rawVal = keyVal + (i*2)
+	else:
+		rawVal = keyVal - (i*2)
+        pixelGrid[j][i] = rawVal
+        #print(pixelGrid[(sizeY-1)-j][i])
+
+    if(j % 2 == 0):
+        keyVal = keyVal - 2
+    else:
+        keyVal = keyVal - 118
+
+strip.begin()
+strip.setBrightness(255)
+
 # --- CLASSES
 #snake class for player
 class Snake():
@@ -42,17 +68,25 @@ class Snake():
     
 #methods
     def __init__(self):
-        self.body_list = [[2,1],[2,2]] #starting location
+        self.body_list = [[14,10],[14,11]] #starting location
         self.change_x = 1
         self.change_y = 0
         self.eaten = False
     def update(self, food):
         #remove old segment
-        old_segment=self.body_list.pop()
+        old_segment = self.body_list.pop()
         self.eaten = False
         #find new segment
         x = self.body_list[0][0] + self.change_x
         y = self.body_list[0][1] + self.change_y
+	if x == sizeX:
+		x = 0
+	if x < 0:
+		x = sizeX-1
+	if y == sizeY:
+		y = 0
+	if y < 0:
+		y = sizeY-1
         segment = [x,y]
         self.body_list.insert(0, segment)
         #check for eaten food
@@ -60,11 +94,14 @@ class Snake():
             self.body_list.append(old_segment)
             self.eaten = True
         else:
-            unicorn.set_pixel(old_segment[0],old_segment[1],BLACK[0],BLACK[1],BLACK[2])
+            strip.setPixelColor(pixelGrid[old_segment[1]][old_segment[0]],BLACK[0],BLACK[1],BLACK[2])
+            strip.setPixelColor(pixelGrid[old_segment[1]][old_segment[0]]+1,BLACK[0],BLACK[1],BLACK[2])
+
         #prepare segments for display on unicorn hat, use try to prevent exception from crashing the game
         for segment in self.body_list:
             try:
-                unicorn.set_pixel(segment[0],segment[1],WHITE[0],WHITE[1],WHITE[2])
+                strip.setPixelColor(pixelGrid[segment[1]][segment[0]],WHITE[0],WHITE[1],WHITE[2])
+                strip.setPixelColor(pixelGrid[segment[1]][segment[0]]+1,WHITE[0],WHITE[1],WHITE[2])
             except:
                 self.g_over = True
                 
@@ -88,25 +125,28 @@ class Snake():
         if self.body_list[0] in self.body_list[1::] or self.g_over == True:
             self.game_over_sequence()
             return True
-        if self.body_list[0][0] > sizeX or self.body_list[0][0] < 0 or self.body_list[0][1] > sizeY or self.body_list[0][1] < 0:
-            self.game_over_sequence()
-            return True
+        #if self.body_list[0][0] > sizeX or self.body_list[0][0] < 0 or self.body_list[0][1] > sizeY or self.body_list[0][1] < 0:
+            #self.game_over_sequence()
+            #return True
         return False
 
     def game_over_sequence(self):
         for segment in self.body_list:
-            unicorn.set_pixel(segment[0], segment[1], 255,50,50)
-            unicorn.show()
-        time.sleep(0.1)
+            strip.setPixelColor(pixelGrid[segment[1]][segment[0]], 255,50,50)
+            strip.setPixelColor(pixelGrid[segment[1]][segment[0]]+1, 255,50,50)
+            strip.show()
+        time.sleep(0.2)
         for segment in self.body_list:
-            unicorn.set_pixel(segment[0], segment[1], 150,30,30)
-            unicorn.show()
-        time.sleep(0.1)
+            strip.setPixelColor(pixelGrid[segment[1]][segment[0]], 150,30,30)
+            strip.setPixelColor(pixelGrid[segment[1]][segment[0]]+1, 150,30,30)
+            strip.show()
+        time.sleep(0.2)
         for segment in self.body_list:
-            unicorn.set_pixel(segment[0], segment[1], 70,10,10)
-            unicorn.show()
-        time.sleep(0.1)
-        unicorn.clear()
+            strip.setPixelColor(pixelGrid[segment[1]][segment[0]], 70,10,10)
+            strip.setPixelColor(pixelGrid[segment[1]][segment[0]]+1, 70,10,10)
+            strip.show()
+        time.sleep(0.2)
+        strip.clear()
         
 #Class for food
 class Food():
@@ -127,8 +167,8 @@ class Food():
             #inside checks to ensure food isn't draw in the same location as the snakes body
             inside = True
             while inside:
-                self.x_pos = randint(0,7)
-                self.y_pos = randint(0,7)
+                self.x_pos = randint(0,sizeX)
+                self.y_pos = randint(0,sizeY)
                 if [self.x_pos, self.y_pos] in snake.body_list:
                     inside = True
                 else:
@@ -139,7 +179,8 @@ class Food():
             self.g = COLOURS[colour][1]
             self.b = COLOURS[colour][2]
         #prepare for display on unicorn hat    
-        unicorn.set_pixel(self.x_pos,self.y_pos,self.r,self.g,self.b)
+        strip.setPixelColor(pixelGrid[self.y_pos][self.x_pos],self.r,self.g,self.b)
+        strip.setPixelColor(pixelGrid[self.y_pos][self.x_pos]+1,self.r,self.g,self.b)
         self.eaten = False
 
 #game class
@@ -164,9 +205,9 @@ class Game(object):
                 self.start = False
             if event.type == pygame.KEYDOWN:
                 #movement
-                if event.key == pygame.K_e and self.snake.change_x != -1:
+                if event.key == pygame.K_f and self.snake.change_x != -1:
                     self.snake.go_left()
-                if event.key == pygame.K_f and self.snake.change_x != 1:
+                if event.key == pygame.K_e and self.snake.change_x != 1:
                     self.snake.go_right()
                 if event.key == pygame.K_c and self.snake.change_y != -1:
                     self.snake.go_up()
@@ -187,9 +228,9 @@ class Game(object):
         #screen used to display information to the player, also required to detect pygame events
         #Unicorn hat display is also handled here
         if self.game_over or self.start:
-            unicorn.clear() # removes last snake image from unicorn hat
+            strip.clear() # removes last snake image from unicorn hat
         else:
-            unicorn.show() # display the snake and food on the unicorn hat
+            strip.show() # display the snake and food on the unicorn hat
 
         pygame.display.flip()
 
