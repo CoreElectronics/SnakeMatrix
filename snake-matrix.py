@@ -16,14 +16,15 @@ sizeY = 15
 NUMPIXELS = 2*(sizeX*sizeY)
 order = 'gbr'
 
-strip = Adafruit_DotStar(NUMPIXELS, 2000000, order=order)
+SPEED = 10
+
+strip = Adafruit_DotStar(NUMPIXELS, 16000000, order=order)
 
 # -- CONSTANTS
-#set the fps, which determines the speed of the snake
-SPEED = 10
+
 #screen size, used for pygame input events and to display instructions 
-SCREEN_WIDTH = 600
-SCREEN_HEIGHT = 450
+SCREEN_WIDTH = 6
+SCREEN_HEIGHT = 4
 #colours     r       g     b
 BLACK =  (    0,     0,     0)
 WHITE = ( 255, 255, 255)
@@ -93,6 +94,8 @@ class Snake():
         if segment[0] == food.x_pos and segment[1] == food.y_pos:
             self.body_list.append(old_segment)
             self.eaten = True
+	    global SPEED
+	    SPEED += 0.5
         else:
             strip.setPixelColor(pixelGrid[old_segment[1]][old_segment[0]],BLACK[0],BLACK[1],BLACK[2])
             strip.setPixelColor(pixelGrid[old_segment[1]][old_segment[0]]+1,BLACK[0],BLACK[1],BLACK[2])
@@ -146,7 +149,6 @@ class Snake():
             strip.setPixelColor(pixelGrid[segment[1]][segment[0]]+1, 70,10,10)
             strip.show()
         time.sleep(0.2)
-        strip.clear()
         
 #Class for food
 class Food():
@@ -167,10 +169,12 @@ class Food():
             #inside checks to ensure food isn't draw in the same location as the snakes body
             inside = True
             while inside:
-                self.x_pos = randint(0,sizeX)
-                self.y_pos = randint(0,sizeY)
+                self.x_pos = randint(0,(sizeX-1))
+                self.y_pos = randint(0,(sizeY-1))
                 if [self.x_pos, self.y_pos] in snake.body_list:
                     inside = True
+		if self.x_pos == 0 and self.y_pos == 14:
+		    inside = True
                 else:
                     inside = False
             #give food a random colour from list of colours. List ensures visible strong colours
@@ -252,7 +256,7 @@ def main():
         game.run_logic()
 
         game.display_frame(screen)
-
+	
         clock.tick(SPEED)
 
     pygame.quit()
