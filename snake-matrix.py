@@ -16,7 +16,8 @@ sizeY = 15
 NUMPIXELS = 2*(sizeX*sizeY)
 order = 'gbr'
 
-SPEED = 10
+SPEED_START = 10
+SPEED = SPEED_START
 
 strip = Adafruit_DotStar(NUMPIXELS, 16000000, order=order)
 
@@ -36,6 +37,9 @@ PURPLE = (255,    0, 255)
 CYAN =   (     0, 255, 255)
 COLOURS = (GREEN, RED, BLUE, YELLOW, PURPLE, CYAN)
 
+keyPressed = 0
+
+#grid mapping handler
 pixelGrid = [[0 for x in range(sizeX+1)] for y in range(sizeY+1)]
 
 keyVal = 840
@@ -47,8 +51,7 @@ for j in range(sizeY):
 	else:
 		rawVal = keyVal - (i*2)
         pixelGrid[j][i] = rawVal
-        #print(pixelGrid[(sizeY-1)-j][i])
-
+       
     if(j % 2 == 0):
         keyVal = keyVal - 2
     else:
@@ -95,7 +98,7 @@ class Snake():
             self.body_list.append(old_segment)
             self.eaten = True
 	    global SPEED
-	    SPEED += 0.5
+	    SPEED += 0.4
         else:
             strip.setPixelColor(pixelGrid[old_segment[1]][old_segment[0]],BLACK[0],BLACK[1],BLACK[2])
             strip.setPixelColor(pixelGrid[old_segment[1]][old_segment[0]]+1,BLACK[0],BLACK[1],BLACK[2])
@@ -110,10 +113,10 @@ class Snake():
                 
     #movement controls
     def go_left(self):
-        self.change_x = 1
+        self.change_x = -1
         self.change_y = 0
     def go_right(self):
-        self.change_x = -1
+        self.change_x = 1
         self.change_y = 0
     def go_up(self):
         self.change_x = 0
@@ -203,19 +206,28 @@ class Game(object):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return True #exits main game loop
-            if event.type == pygame.KEYDOWN and event.key == pygame.K_o and (self.game_over or self.start):
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_o:
                 #start or restart the game
+		global SPEED
+		strip.clear()
+		strip.show()
+		SPEED = SPEED_START
                 self.__init__()
                 self.start = False
             if event.type == pygame.KEYDOWN:
                 #movement
-                if event.key == pygame.K_f and self.snake.change_x != -1:
+		global keyPressed
+                if event.key == pygame.K_e and self.snake.change_x != 1 and keyPressed == 0:
+		    keyPressed = 1
                     self.snake.go_left()
-                if event.key == pygame.K_e and self.snake.change_x != 1:
+                elif event.key == pygame.K_f and self.snake.change_x != -1 and keyPressed == 0:
+		    keyPressed = 1
                     self.snake.go_right()
-                if event.key == pygame.K_c and self.snake.change_y != -1:
-                    self.snake.go_up()
-                if event.key == pygame.K_d and self.snake.change_y != 1:
+                elif event.key == pygame.K_c and self.snake.change_y != -1 and keyPressed == 0:
+                     keyPressed = 1
+		     self.snake.go_up()
+                elif event.key == pygame.K_d and self.snake.change_y != 1 and keyPressed == 0:
+		    keyPressed = 1
                     self.snake.go_down()
         return False #stay in main game loop
 
@@ -240,6 +252,7 @@ class Game(object):
 
 #main game function and loop
 def main():
+    global keyPressed
     pygame.init()
 
     size = (SCREEN_WIDTH, SCREEN_HEIGHT)
@@ -256,9 +269,9 @@ def main():
         game.run_logic()
 
         game.display_frame(screen)
+	keyPressed = 0
 	
         clock.tick(SPEED)
-
     pygame.quit()
 
 if __name__ == '__main__':

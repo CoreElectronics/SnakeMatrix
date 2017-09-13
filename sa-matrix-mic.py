@@ -1,3 +1,5 @@
+#!usr/bin/env python
+
 import sys
 import pyaudio
 from struct import unpack
@@ -60,7 +62,7 @@ sample_rate = 44100
 # Chunk must be a multiple of 8
 # NOTE: If chunk size is too small the program will crash
 # with error message: [Errno Input overflowed]
-chunk = 4096
+chunk = 3072
 
 list_devices()
 # Use results from list_devices() to determine your microphone index
