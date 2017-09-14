@@ -10,8 +10,8 @@ import os
 select = 49
 
 NUMPIXELS = 900
-
-strip = Adafruit_DotStar(NUMPIXELS, 1600000)
+#ORDER = 'gbr'
+strip = Adafruit_DotStar(NUMPIXELS, 8000000)
 
 strip.begin()
 strip.show()
@@ -38,10 +38,10 @@ for j in range(sizeY):
         keyVal = keyVal - 118
 
 #frequency response scaling
-senseVal = 40
-bassAdj = 1*senseVal
-midAdj = 1*senseVal
-trebleAdj = 3*senseVal
+senseVal = 3
+bassAdj = 6*senseVal
+midAdj = 2*senseVal
+trebleAdj = 1*senseVal
 
 colourGrad =   [0xff0000,0xff0034,0xff0069,0xff009e,0xff00d2,0xf600ff,0xc100ff,0x8c00ff,0x5800ff,0x2300ff,
 		0x0011ff,0x0045ff,0x007aff,0x00afff,0x00E4ff,0x00ffE5,0x00ffb0,0x00ff7b,0x00ff46,0x00ff12,
@@ -62,7 +62,7 @@ def list_devices():
         i += 1
 
 # Audio setup
-no_channels = 1
+no_channels = 2
 sample_rate = 44100
 
 # Chunk must be a multiple of 8
@@ -100,16 +100,16 @@ def calculate_levels(data, chunk,sample_rate):
     power = np.abs(fourier)
     
     matrix[0]= int(np.mean(power[piff(0)   :piff(22):1]))*bassAdj
-    matrix[1]= int(np.mean(power[piff(22)    :piff(28):1]))*bassAdj      
+    matrix[1]= int(np.mean(power[piff(22)  :piff(28):1]))*bassAdj      
     matrix[2]= int(np.mean(power[piff(28)  :piff(36):1]))*bassAdj
     matrix[3]= int(np.mean(power[piff(36)  :piff(44):1]))*bassAdj
     matrix[4]= int(np.mean(power[piff(44)  :piff(56):1]))*bassAdj
     matrix[5]= int(np.mean(power[piff(56)  :piff(70):1]))*bassAdj
-    matrix[6]= int(np.mean(power[piff(70) :piff(89):1]))*bassAdj
-    matrix[7]= int(np.mean(power[piff(89) :piff(112):1]))*bassAdj
-    matrix[8]= int(np.mean(power[piff(112) :piff(141):1]))*bassAdj
-    matrix[9]= int(np.mean(power[piff(140):piff(180):1]))*bassAdj
-    matrix[10]= int(np.mean(power[piff(178):piff(224):1]))*bassAdj
+    matrix[6]= int(np.mean(power[piff(70)  :piff(89):1]))*midAdj
+    matrix[7]= int(np.mean(power[piff(89)  :piff(112):1]))*midAdj
+    matrix[8]= int(np.mean(power[piff(112) :piff(141):1]))*midAdj
+    matrix[9]= int(np.mean(power[piff(140) :piff(180):1]))*midAdj
+    matrix[10]= int(np.mean(power[piff(178):piff(224):1]))*midAdj
     matrix[11]= int(np.mean(power[piff(224):piff(282):1]))*midAdj
     matrix[12]= int(np.mean(power[piff(282):piff(355):1]))*midAdj
     matrix[13]= int(np.mean(power[piff(355):piff(447):1]))*midAdj
@@ -122,8 +122,8 @@ def calculate_levels(data, chunk,sample_rate):
     matrix[20]= int(np.mean(power[piff(1122):piff(1413):1]))*midAdj
     matrix[21]= int(np.mean(power[piff(1413):piff(1778):1]))*midAdj
     matrix[22]= int(np.mean(power[piff(1778):piff(2239):1]))*midAdj
-    matrix[23]= int(np.mean(power[piff(2239):piff(2818):1]))*midAdj
-    matrix[24]= int(np.mean(power[piff(2818):piff(3548):1]))*midAdj
+    matrix[23]= int(np.mean(power[piff(2239):piff(2818):1]))*trebleAdj
+    matrix[24]= int(np.mean(power[piff(2818):piff(3548):1]))*trebleAdj
     matrix[25]= int(np.mean(power[piff(3548):piff(4467):1]))*trebleAdj
     matrix[26]= int(np.mean(power[piff(4467):piff(5623):1]))*trebleAdj
     matrix[27]= int(np.mean(power[piff(5623):piff(7079):1]))*trebleAdj
@@ -150,15 +150,15 @@ while 1:
 		strip.setPixelColor(pixelGrid[x][y]+1, colourGrad[y])
        	strip.show()
 	
-	if os.path.exists('/home/pi/SnakeMatrix/toggleYes'):
-		print("path found")
-		os.rmdir('/home/pi/SnakeMatrix/toggleYes')
-		strip.clear()
-		strip.show()
-		stream.stop_stream()
-		stream.close()
-		p.terminate()
-		sys.exit(1)
+	while os.path.exists('/home/pi/SnakeMatrix/toggleYes'):
+		sleep(0.01)
+		#strip.clear()
+		#strip.show()
+		#stream.stop_stream()
+		#stream.close()
+		#p.terminate()
+		#os.rmdir('/home/pi/SnakeMatrix/toggleYes')
+		#sys.exit(1)
 
     except KeyboardInterrupt:
 	if os.path.exists('/home/pi/SnakeMatrix/toggleYes'):

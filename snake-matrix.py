@@ -19,7 +19,7 @@ order = 'gbr'
 SPEED_START = 10
 SPEED = SPEED_START
 
-strip = Adafruit_DotStar(NUMPIXELS, 16000000, order=order)
+strip = Adafruit_DotStar(NUMPIXELS, 12000000, order=order)
 
 # -- CONSTANTS
 
@@ -198,7 +198,7 @@ class Game(object):
     snake = None
     food = None
     game_over = None
-    start = True #used to start the game in the same conditions as game over
+    start = False #used to start the game in the same conditions as game over
 #methods
     def __init__(self):
         self.snake = Snake()
@@ -221,7 +221,7 @@ class Game(object):
 		if event.key == pygame.K_n:
 			strip.clear()
 			strip.show()
-			sys.exit(1)
+			exit()
 		global keyPressed
                 if event.key == pygame.K_e and self.snake.change_x != 1 and keyPressed == 0:
 		    keyPressed = 1
@@ -270,14 +270,17 @@ def main():
     game = Game()
     
     while not done:
-        done = game.process_events()
-
-        game.run_logic()
-
-        game.display_frame(screen)
-	keyPressed = 0
-	
-        clock.tick(SPEED)
+	try:
+        	done = game.process_events()
+        	game.run_logic()
+        	game.display_frame(screen)
+		keyPressed = 0
+        	clock.tick(SPEED)
+	except KeyboardInterrupt:
+		print("Ctrl-C Terminating...")
+		strip.clear()
+		strip.show()
+		sys.exit(1)
     pygame.quit()
 
 if __name__ == '__main__':

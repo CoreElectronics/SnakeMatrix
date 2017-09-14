@@ -1,11 +1,13 @@
 from dotstar import Adafruit_DotStar
-from random import ranint
 import time
-
-strip = Adafruit_DotStar(NUMPIXELS, 2000000, order=order)
 
 sizeX = 30
 sizeY = 15
+
+NUMPIXELS = 2*sizeX*sizeY
+
+ORDER = 'gbr'
+strip = Adafruit_DotStar(NUMPIXELS, 16000000, order=ORDER)
 
 pixelGrid = [[0 for x in range(sizeX+1)] for y in range(sizeY+1)]
 
@@ -25,8 +27,17 @@ for j in range(sizeY):
     else:
         keyVal = keyVal - 118
 
+#write character left to right then bottom to top
+#character bounders = 4(x) * 5(y)
+a = [[0,0],[0,1],[0,2],[0,3],[1,2],[1,4],[2,2],[2,4],[3,0],[3,1],[3,2],[3,3]]
+alphabet = [a]
+
 strip.begin()
+strip.show()
 
-colours = [0xff0000, 0x00ff00, 0x0000ff]
-
-for i in range
+for pixel in a:
+	strip.setPixelColor(pixelGrid(a[pixel]), 0xffffff)
+strip.show()
+time.sleep(3)
+strip.clear()
+strip.show()
