@@ -1,10 +1,13 @@
-#!usr/bin/env python
+#!usr/bin/python
 
 import sys
 import pyaudio
 from struct import unpack
 import numpy as np
 from dotstar import Adafruit_DotStar
+import os
+
+select = 49
 
 NUMPIXELS = 900
 
@@ -35,11 +38,14 @@ for j in range(sizeY):
         keyVal = keyVal - 118
 
 #frequency response scaling
-senseVal = 10
+senseVal = 40
 bassAdj = 1*senseVal
 midAdj = 1*senseVal
 trebleAdj = 3*senseVal
 
+colourGrad =   [0xff0000,0xff0034,0xff0069,0xff009e,0xff00d2,0xf600ff,0xc100ff,0x8c00ff,0x5800ff,0x2300ff,
+		0x0011ff,0x0045ff,0x007aff,0x00afff,0x00E4ff,0x00ffE5,0x00ffb0,0x00ff7b,0x00ff46,0x00ff12,
+		0x22ff00,0x57ff00,0x8bff00,0xc0ff00,0xf5ff00,0xffd300,0xff9f00,0xff6a00,0xff3500,0xff0100]
 matrix    = [0 for x in range(30)]
 power     = []
 weighting = [1,1,1,1,2,2,2,2,4,4,4,4,8,8,8,8,16,16,16,16,32,32,32,32,64,64,64,64,128,128] 
@@ -62,7 +68,7 @@ sample_rate = 44100
 # Chunk must be a multiple of 8
 # NOTE: If chunk size is too small the program will crash
 # with error message: [Errno Input overflowed]
-chunk = 3072
+chunk = 4096
 
 list_devices()
 # Use results from list_devices() to determine your microphone index
@@ -133,23 +139,45 @@ def calculate_levels(data, chunk,sample_rate):
 # Main loop
 while 1:
     try:
+	
         # Get microphone data
-        data = stream.read(chunk)
-        matrix=calculate_levels(data, chunk,sample_rate)
-        strip.clear()
-        for y in range (0,30):
-            for x in range(0, matrix[y]):
-                strip.setPixelColor(pixelGrid[x][y], 255,255,255)
-		strip.setPixelColor(pixelGrid[x][y]+1, 255,255,255)
-        strip.show()
+       	data = stream.read(chunk)
+       	matrix=calculate_levels(data, chunk,sample_rate)
+       	strip.clear()
+       	for y in range (0,30):
+       	    for x in range(0, matrix[y]):
+       	        strip.setPixelColor(pixelGrid[x][y], colourGrad[y])
+		strip.setPixelColor(pixelGrid[x][y]+1, colourGrad[y])
+       	strip.show()
+	
+	if os.path.exists('/home/pi/SnakeMatrix/toggleYes'):
+		print("path found")
+		os.rmdir('/home/pi/SnakeMatrix/toggleYes')
+		strip.clear()
+		strip.show()
+		stream.stop_stream()
+		stream.close()
+		p.terminate()
+		sys.exit(1)
+
     except KeyboardInterrupt:
+	if os.path.exists('/home/pi/SnakeMatrix/toggleYes'):
+		print("path found")
+		os.rmdir('/home/pi/SnakeMatrix/toggleYes')
         print("Ctrl-C Terminating...")
-        stream.stop_stream()
+       	strip.clear()
+	strip.show()
+	stream.stop_stream()
         stream.close()
         p.terminate()
         sys.exit(1)
     except Exception, e:
+	if os.path.exists('/home/pi/SnakeMatrix/toggleYes'):
+		print("path found")
+		os.rmdir('/home/pi/SnakeMatrix/toggleYes')
         print(e)
+	strip.clear()
+	strip.show()
         print("ERROR Terminating...")
         stream.stop_stream()
         stream.close()

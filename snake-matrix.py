@@ -141,17 +141,19 @@ class Snake():
             strip.setPixelColor(pixelGrid[segment[1]][segment[0]], 255,50,50)
             strip.setPixelColor(pixelGrid[segment[1]][segment[0]]+1, 255,50,50)
             strip.show()
-        time.sleep(0.2)
+        time.sleep(0.1)
         for segment in self.body_list:
             strip.setPixelColor(pixelGrid[segment[1]][segment[0]], 150,30,30)
             strip.setPixelColor(pixelGrid[segment[1]][segment[0]]+1, 150,30,30)
             strip.show()
-        time.sleep(0.2)
+        time.sleep(0.1)
         for segment in self.body_list:
             strip.setPixelColor(pixelGrid[segment[1]][segment[0]], 70,10,10)
             strip.setPixelColor(pixelGrid[segment[1]][segment[0]]+1, 70,10,10)
             strip.show()
-        time.sleep(0.2)
+        time.sleep(0.1)
+	game = Game()
+	game.process_events()
         
 #Class for food
 class Food():
@@ -216,6 +218,10 @@ class Game(object):
                 self.start = False
             if event.type == pygame.KEYDOWN:
                 #movement
+		if event.key == pygame.K_n:
+			strip.clear()
+			strip.show()
+			sys.exit(1)
 		global keyPressed
                 if event.key == pygame.K_e and self.snake.change_x != 1 and keyPressed == 0:
 		    keyPressed = 1
