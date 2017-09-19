@@ -140,18 +140,7 @@ class Snake():
         for segment in self.body_list:
             strip.setPixelColor(pixelGrid[segment[1]][segment[0]], 255,50,50)
             strip.setPixelColor(pixelGrid[segment[1]][segment[0]]+1, 255,50,50)
-            strip.show()
-        time.sleep(0.1)
-        for segment in self.body_list:
-            strip.setPixelColor(pixelGrid[segment[1]][segment[0]], 150,30,30)
-            strip.setPixelColor(pixelGrid[segment[1]][segment[0]]+1, 150,30,30)
-            strip.show()
-        time.sleep(0.1)
-        for segment in self.body_list:
-            strip.setPixelColor(pixelGrid[segment[1]][segment[0]], 70,10,10)
-            strip.setPixelColor(pixelGrid[segment[1]][segment[0]]+1, 70,10,10)
-            strip.show()
-        time.sleep(0.1)
+        strip.show()
 	game = Game()
 	game.process_events()
         

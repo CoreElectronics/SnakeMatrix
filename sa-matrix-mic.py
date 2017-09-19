@@ -1,17 +1,17 @@
 #!usr/bin/python
-
 import sys
 import pyaudio
 from struct import unpack
 import numpy as np
 from dotstar import Adafruit_DotStar
 import os
+import time
 
-select = 49
+toggleDir = '/home/pi/SnakeMatrix/toggleYes'
 
 NUMPIXELS = 900
-#ORDER = 'gbr'
-strip = Adafruit_DotStar(NUMPIXELS, 8000000)
+ORDER = 'gbr'
+strip = Adafruit_DotStar(NUMPIXELS, 8000000, order=ORDER)
 
 strip.begin()
 strip.show()
@@ -38,10 +38,10 @@ for j in range(sizeY):
         keyVal = keyVal - 118
 
 #frequency response scaling
-senseVal = 3
-bassAdj = 6*senseVal
-midAdj = 2*senseVal
-trebleAdj = 1*senseVal
+senseVal = 30
+bassAdj = 1*senseVal
+midAdj = 1*senseVal
+trebleAdj = 3*senseVal
 
 colourGrad =   [0xff0000,0xff0034,0xff0069,0xff009e,0xff00d2,0xf600ff,0xc100ff,0x8c00ff,0x5800ff,0x2300ff,
 		0x0011ff,0x0045ff,0x007aff,0x00afff,0x00E4ff,0x00ffE5,0x00ffb0,0x00ff7b,0x00ff46,0x00ff12,
@@ -62,7 +62,7 @@ def list_devices():
         i += 1
 
 # Audio setup
-no_channels = 2
+no_channels = 1
 sample_rate = 44100
 
 # Chunk must be a multiple of 8
@@ -144,26 +144,21 @@ while 1:
        	data = stream.read(chunk)
        	matrix=calculate_levels(data, chunk,sample_rate)
        	strip.clear()
+	lastColour = colourGrad[29]
+	colourGrad.pop(29)
+	colourGrad.insert(0, lastColour)
        	for y in range (0,30):
        	    for x in range(0, matrix[y]):
        	        strip.setPixelColor(pixelGrid[x][y], colourGrad[y])
 		strip.setPixelColor(pixelGrid[x][y]+1, colourGrad[y])
        	strip.show()
-	
-	while os.path.exists('/home/pi/SnakeMatrix/toggleYes'):
+	while os.path.exists(toggleDir):
 		sleep(0.01)
-		#strip.clear()
-		#strip.show()
-		#stream.stop_stream()
-		#stream.close()
-		#p.terminate()
-		#os.rmdir('/home/pi/SnakeMatrix/toggleYes')
-		#sys.exit(1)
-
+		
     except KeyboardInterrupt:
-	if os.path.exists('/home/pi/SnakeMatrix/toggleYes'):
+	if os.path.exists(toggleDir):
 		print("path found")
-		os.rmdir('/home/pi/SnakeMatrix/toggleYes')
+		os.rmdir(toggleDir)
         print("Ctrl-C Terminating...")
        	strip.clear()
 	strip.show()
@@ -172,9 +167,9 @@ while 1:
         p.terminate()
         sys.exit(1)
     except Exception, e:
-	if os.path.exists('/home/pi/SnakeMatrix/toggleYes'):
+	if os.path.exists(toggleDir):
 		print("path found")
-		os.rmdir('/home/pi/SnakeMatrix/toggleYes')
+		os.rmdir(toggleDir)
         print(e)
 	strip.clear()
 	strip.show()
