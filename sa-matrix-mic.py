@@ -37,12 +37,6 @@ for j in range(sizeY):
     else:
         keyVal = keyVal - 118
 
-#frequency response scaling
-senseVal = 30
-bassAdj = 1*senseVal
-midAdj = 1*senseVal
-trebleAdj = 4*senseVal
-
 colourGrad =   [0xff0000,0xff0034,0xff0069,0xff009e,0xff00d2,0xf600ff,0xc100ff,0x8c00ff,0x5800ff,0x2300ff,
 		0x0011ff,0x0045ff,0x007aff,0x00afff,0x00E4ff,0x00ffE5,0x00ffb0,0x00ff7b,0x00ff46,0x00ff12,
 		0x22ff00,0x57ff00,0x8bff00,0xc0ff00,0xf5ff00,0xffd300,0xff9f00,0xff6a00,0xff3500,0xff0100]
@@ -50,7 +44,16 @@ matrix    = [0 for x in range(30)]
 power     = []
 weighting = [1,1,1,1,2,2,2,2,4,4,4,4,8,8,8,8,16,16,16,16,32,32,32,32,64,64,64,64,128,128] 
 
+device = 0
+yeti = 'Yeti Stereo Microphone'
+usbMic = 'USB PnP Sound Device'
+
+
 def list_devices():
+    #microphone profiles
+    global yeti
+    global usbMic
+    global device
     # List all audio input devices
     p = pyaudio.PyAudio()
     i = 0
@@ -59,20 +62,38 @@ def list_devices():
         dev = p.get_device_info_by_index(i)
         if dev['maxInputChannels'] > 0:
            print(str(i)+'. '+dev['name'])
+	if yeti in (dev['name']):
+	   device = i
+	   return yeti
+	elif usbMic in (dev['name']):
+	   device = i
+	   return usbMic
         i += 1
 
 # Audio setup
 no_channels = 1
 sample_rate = 44100
 
+
 # Chunk must be a multiple of 8
 # NOTE: If chunk size is too small the program will crash
 # with error message: [Errno Input overflowed]
 chunk = 4096
 
-list_devices()
-# Use results from list_devices() to determine your microphone index
-device = 2 
+micProfile = list_devices()
+
+#frequency response scaling for each microphone
+
+if micProfile == usbMic:
+	senseVal = 20
+	bassAdj = 1*senseVal
+	midAdj = 1*senseVal
+	trebleAdj = 1*senseVal
+elif micProfile == yeti:
+	senseVal = 10
+	bassAdj = 1*senseVal
+	midAdj = 1*senseVal
+	trebleAdj = 1*senseVal
 
 p = pyaudio.PyAudio()
 stream = p.open(format = pyaudio.paInt16,
